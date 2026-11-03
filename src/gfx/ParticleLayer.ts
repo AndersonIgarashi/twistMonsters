@@ -63,17 +63,18 @@ export class ParticleLayer {
   }
 
   spawn(x: number, y: number, o: SpawnOptions): void {
+    const pool = this.pool;
     let p: Particle | undefined;
-    for (const q of this.pool) {
-      if (!q.active) {
-        p = q;
+    for (let i = 0; i < pool.length; i++) {
+      if (!pool[i].active) {
+        p = pool[i];
         break;
       }
     }
     if (!p) {
       // Pool full: recycle the oldest particle rather than dropping the new one.
-      p = this.pool[0];
-      for (const q of this.pool) if (q.age / q.life > p.age / p.life) p = q;
+      p = pool[0];
+      for (let i = 1; i < pool.length; i++) if (pool[i].age / pool[i].life > p.age / p.life) p = pool[i];
     }
     p.active = true;
     p.x = x;
@@ -105,8 +106,10 @@ export class ParticleLayer {
 
   update(dt: number): void {
     const batch = this.batch;
+    const pool = this.pool;
     batch.begin();
-    for (const p of this.pool) {
+    for (let i = 0; i < pool.length; i++) {
+      const p = pool[i];
       if (!p.active) continue;
       p.age += dt;
       const t = p.age / p.life;

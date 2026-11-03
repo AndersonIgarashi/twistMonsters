@@ -63,11 +63,19 @@ class Pill {
   }
 }
 
+/**
+ * Restarts a CSS animation without forcing a layout: it alternates between `cls` and
+ * `cls-b`, whose keyframes are identical copies, so the animation name changes every call.
+ */
 function bump(node: HTMLElement, cls: string): void {
-  node.classList.remove(cls);
-  // Force a reflow so the animation restarts on every call.
-  void node.offsetWidth;
-  node.classList.add(cls);
+  const alt = `${cls}-b`;
+  if (node.classList.contains(cls)) {
+    node.classList.remove(cls);
+    node.classList.add(alt);
+  } else {
+    node.classList.remove(alt);
+    node.classList.add(cls);
+  }
 }
 
 /** The original gameplay HUD: life bars on both edges and the level / arrows / souls / damage pills. */

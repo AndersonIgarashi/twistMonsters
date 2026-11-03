@@ -11,8 +11,8 @@ for (const [path, url] of Object.entries(imageUrls)) images[baseName(path)] = ur
 export const sounds = new Map<string, string>();
 for (const [path, url] of Object.entries(soundUrls)) sounds.set(baseName(path), url);
 
-/** Textures that get sampled well below their size (the nebula, arrows) get mipmaps; sheets don't, so frames never bleed. */
-const MIPMAPPED = new Set(['bg', 'arrow', 'arrowBroken1', 'arrowBroken2', 'soul']);
+/** Textures that get sampled below their size (arrows, souls) get mipmaps; the nebula is always magnified and sheets don't, so frames never bleed. */
+const MIPMAPPED = new Set(['arrow', 'arrowBroken1', 'arrowBroken2', 'soul']);
 
 export const GAME_TEXTURES = [
   'bg', 'darkTop', 'darkBottom', 'spikeball', 'tentacle', 'eye', 'eyeWhite', 'body', 'energyBall', 'laser', 'bolt',

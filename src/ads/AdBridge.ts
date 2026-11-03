@@ -34,6 +34,14 @@ export class AdBridge {
     return new Promise((resolve) => mraid.addEventListener('ready', () => resolve()));
   }
 
+  /** Reports MRAID viewability changes (the container hiding the ad). No-op outside MRAID. */
+  onViewableChange(fn: (viewable: boolean) => void): void {
+    const mraid = this.adWindow.mraid;
+    if (!mraid) return;
+    mraid.addEventListener('viewableChange', (viewable) => fn(Boolean(viewable)));
+    if (mraid.isViewable) fn(mraid.isViewable());
+  }
+
   /** Returns true when a real store redirect was requested. */
   openStore(url: string): boolean {
     try {

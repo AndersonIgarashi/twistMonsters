@@ -96,7 +96,8 @@ export class DamageNumbers {
   update(dt: number): void {
     const b = this.batch;
     b.begin();
-    for (const n of this.pool) {
+    for (let k = 0; k < this.pool.length; k++) {
+      const n = this.pool[k];
       if (!n.active) continue;
       n.age += dt;
       const t = n.age / this.life;

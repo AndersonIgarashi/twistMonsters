@@ -40,8 +40,12 @@ await page.evaluateOnNewDocument(() => {
   const w = window;
   w.__frames = [];
   let last = 0;
+  w.__long = [];
   const tick = (t) => {
-    if (last) w.__frames.push(t - last);
+    if (last) {
+      w.__frames.push(t - last);
+      if (t - last > 50) w.__long.push(`${Math.round(t - last)}ms@${w.__game?.state ?? 'boot'}`);
+    }
     last = t;
     requestAnimationFrame(tick);
   };
@@ -120,6 +124,7 @@ await shot('10-replay');
 const after = await state();
 
 const frames = await page.evaluate(() => window.__frames.slice(30));
+const longFrames = await page.evaluate(() => window.__long);
 frames.sort((a, b) => a - b);
 const avg = frames.reduce((a, b) => a + b, 0) / Math.max(1, frames.length);
 const p = (q) => frames[Math.min(frames.length - 1, Math.floor(frames.length * q))] ?? 0;
@@ -142,6 +147,7 @@ console.log(JSON.stringify({
   worstFrame: (frames.at(-1) ?? 0).toFixed(1),
   over50ms: frames.filter((f) => f > 50).length,
   over100ms: frames.filter((f) => f > 100).length,
+  longFrames,
   errors,
   external,
 }, null, 2));

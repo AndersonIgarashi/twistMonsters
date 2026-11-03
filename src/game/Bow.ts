@@ -58,7 +58,7 @@ export class Bow {
   }
 
   get inFlight(): boolean {
-    for (const f of this.flying) if (f.active) return true;
+    for (let i = 0; i < this.flying.length; i++) if (this.flying[i].active) return true;
     return false;
   }
 
@@ -110,7 +110,8 @@ export class Bow {
     this.kick = Math.max(0, this.kick - dt * 5);
 
     this.arrows.begin();
-    for (const f of this.flying) {
+    for (let i = 0; i < this.flying.length; i++) {
+      const f = this.flying[i];
       if (!f.active) continue;
       f.y += speed * dt;
       if (f.y > 8) f.active = false;

@@ -1,6 +1,6 @@
 import type { Object3D, Texture } from 'three';
 import { ease, rand } from '../core/Tween';
-import { ParticleLayer } from '../gfx/ParticleLayer';
+import { ParticleLayer, type SpawnOptions } from '../gfx/ParticleLayer';
 import { SpriteBatch } from '../gfx/SpriteBatch';
 
 interface Soul {
@@ -22,6 +22,8 @@ interface Soul {
 }
 
 const HOME_TIME = 0.55;
+/** Reused for every trail spark, so the homing flight allocates nothing. */
+const TRAIL: SpawnOptions = { w: 0.42, life: 0.32, endScale: 0.2, r: 0.55, g: 0.8, b: 1, a: 0.85, rot: 0 };
 
 /**
  * The souls a defeated monster releases. They burst out, float and pulse like the original
@@ -111,7 +113,8 @@ export class Souls {
         s.trail += dt;
         if (s.trail > 0.025) {
           s.trail = 0;
-          this.trail.spawn(s.x, s.y, { w: 0.42, life: 0.32, endScale: 0.2, r: 0.55, g: 0.8, b: 1, a: 0.85, rot: rand(0, 6.28) });
+          TRAIL.rot = rand(0, 6.28);
+          this.trail.spawn(s.x, s.y, TRAIL);
         }
         if (s.homing >= 1) {
           s.active = false;

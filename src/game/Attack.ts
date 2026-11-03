@@ -26,6 +26,8 @@ const LASER_FRAMES = 29;
 const BALL = 1.02;
 
 type Phase = 'idle' | 'charge' | 'hold' | 'fire' | 'fade';
+const ZAPS = ['zap1', 'zap2', 'zap3'] as const;
+const ZAP_OPTS = { volume: 0.45, minGap: 0.12 };
 
 /**
  * The monster's energy attack, as in attackRayMonster.cs: an energy ball swells in its eye
@@ -153,8 +155,10 @@ export class Attack {
         this.boltAge[i] = -1;
         continue;
       }
-      const [sx, sy, rot] = BOLT_SLOTS[i];
-      const r = rot * DEG;
+      const slot = BOLT_SLOTS[i];
+      const sx = slot[0];
+      const sy = slot[1];
+      const r = slot[2] * DEG;
       // The bolt's local offset (-0.06, 1.57) inside its rotated slot.
       const ox = -0.06 * Math.cos(r) - 1.57 * Math.sin(r);
       const oy = -0.06 * Math.sin(r) + 1.57 * Math.cos(r);
@@ -178,6 +182,6 @@ export class Attack {
     const slot = randInt(0, BOLT_SLOTS.length - 1);
     if (this.boltAge[slot] >= 0) return;
     this.boltAge[slot] = 0;
-    this.audio.play(`zap${randInt(1, 3)}`, { volume: 0.45, minGap: 0.12 });
+    this.audio.play(ZAPS[randInt(0, 2)], ZAP_OPTS);
   }
 }

@@ -85,8 +85,8 @@ export class Monster {
   blockedAtBottom(gapDeg: number): boolean {
     const target = this.bottomAngle;
     const gap = gapDeg * DEG;
-    for (const a of this.stuck) {
-      let d = (a.angle - target) % (Math.PI * 2);
+    for (let i = 0; i < this.stuck.length; i++) {
+      let d = (this.stuck[i].angle - target) % (Math.PI * 2);
       if (d > Math.PI) d -= Math.PI * 2;
       if (d < -Math.PI) d += Math.PI * 2;
       if (Math.abs(d) < gap) return true;
@@ -151,15 +151,16 @@ export class Monster {
     const frame = Math.floor(this.time * 12);
     this.tentacles.begin();
     for (let i = 0; i < TENTACLES.length; i++) {
-      const [tx, ty, rot, s] = TENTACLES[i];
+      const t = TENTACLES[i];
       // Each tentacle starts its 7-frame loop at a different point so they never wave in unison.
-      this.tentacles.push(tx, ty, rot * DEG, TENTACLE_W * s, TENTACLE_H * s, (frame + i * 3) % 7);
+      this.tentacles.push(t[0], t[1], t[2] * DEG, TENTACLE_W * t[3], TENTACLE_H * t[3], (frame + i * 3) % 7);
     }
     this.tentacles.commit();
 
     const r = radius - embed + CONFIG.arrow.h / 2;
     this.arrows.begin();
-    for (const a of this.stuck) {
+    for (let i = 0; i < this.stuck.length; i++) {
+      const a = this.stuck[i];
       a.wobble = Math.max(0, a.wobble - dt * 3.2);
       const wob = Math.sin(a.wobble * 34) * a.wobble * 0.09;
       const ang = a.angle + wob;

@@ -99,7 +99,7 @@ export class EndCard {
     this.bought = false;
     this.soulsText.textContent = String(souls);
     this.ask.textContent = 'Spend your souls on an upgrade!';
-    for (const c of this.cards) c.classList.remove('is-bought', 'is-locked');
+    for (const c of this.cards) c.classList.remove('is-bought', 'is-bought-b', 'is-locked');
     this.cta.classList.remove('is-pulsing');
     this.dim.classList.add('is-visible');
     this.root.classList.add('is-visible');
@@ -107,6 +107,7 @@ export class EndCard {
   }
 
   hide(): void {
+    this.cta.classList.remove('is-pulsing');
     this.dim.classList.remove('is-visible');
     this.root.classList.remove('is-visible');
     this.note.classList.remove('is-on');
@@ -122,7 +123,7 @@ export class EndCard {
   private pick(card: HTMLButtonElement, up: Upgrade): void {
     if (this.bought) {
       // Locked cards are a store moment: more souls live in the full game.
-      if (!card.classList.contains('is-bought')) this.hooks.onCta();
+      if (card.classList.contains('is-locked')) this.hooks.onCta();
       return;
     }
     this.bought = true;

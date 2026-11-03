@@ -35,7 +35,7 @@ export class Background {
   private pan = 0;
 
   constructor(stage: Stage, tex: Record<'bg' | 'darkTop' | 'darkBottom' | 'spikeball', Texture>) {
-    this.bg = new SpriteBatch({ texture: tex.bg, capacity: 1, order: 0 });
+    this.bg = new SpriteBatch({ texture: tex.bg, capacity: 1, order: 0, opaque: true });
     this.darkTop = new SpriteBatch({ texture: tex.darkTop, capacity: 1, order: 1 });
     this.darkBottom = new SpriteBatch({ texture: tex.darkBottom, capacity: 1, order: 1 });
     this.pods = new SpriteBatch({ texture: tex.spikeball, capacity: PODS.length, order: 2, cols: 3, rows: 3 });
@@ -70,9 +70,9 @@ export class Background {
     const frame = Math.floor(time * 12) % 9;
     this.pods.begin();
     for (let i = 0; i < PODS.length; i++) {
-      const [px, py, rot, sx, sy, isTop] = PODS[i];
-      const y = (isTop ? top : bottom) + py * s;
-      this.pods.push(dx + px * s, y, (rot * Math.PI) / 180, POD_W * sx * s, POD_H * sy * s, (frame + i * 2) % 9, 0, 0, 0, 1);
+      const pod = PODS[i];
+      const y = (pod[5] ? top : bottom) + pod[1] * s;
+      this.pods.push(dx + pod[0] * s, y, (pod[2] * Math.PI) / 180, POD_W * pod[3] * s, POD_H * pod[4] * s, (frame + i * 2) % 9, 0, 0, 0, 1);
     }
     this.pods.commit();
   }

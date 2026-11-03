@@ -1,3 +1,4 @@
+import type { Mesh, ShaderMaterial, Texture } from 'three';
 import './ui/styles.css';
 import { AdBridge } from './ads/AdBridge';
 import { Audio } from './audio/Audio';
@@ -45,6 +46,20 @@ async function boot(): Promise<void> {
   ]);
 
   const game = new Game(stage, textures, audio, bridge, frame);
+  // Upload every texture and compile the shader while the boot screen is still up, so the
+  // first hit, laser or soul burst doesn't stall on a lazy GPU upload.
+  stage.scene.traverse((o) => {
+    o.visible = true;
+    const map = ((o as Mesh).material as ShaderMaterial | undefined)?.uniforms?.uMap?.value as Texture | undefined;
+    if (map) stage.renderer.initTexture(map);
+  });
+  stage.renderer.compile(stage.scene, stage.camera);
+  stage.render();
+  let viewable = true;
+  bridge.onViewableChange((v) => {
+    viewable = v;
+    audio.setPaused(!v);
+  });
 
   const dev = CONFIG.dev ? document.body.appendChild(Object.assign(document.createElement('div'), { className: 'dev' })) : null;
   let devTimer = 0;
@@ -55,13 +70,27 @@ async function boot(): Promise<void> {
   let slowTime = 0;
   let slowFrames = 0;
 
+  // Stop the loop while the page is hidden (rAF throttling alone still runs a few frames).
+  let running = true;
   let last = performance.now();
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      running = false;
+    } else if (!running) {
+      running = true;
+      last = performance.now();
+      requestAnimationFrame(loop);
+    }
+  });
   const loop = (now: number) => {
+    if (!running) return;
     const raw = (now - last) / 1000;
     last = now;
     const dt = Math.min(raw, 1 / 20);
-    game.update(dt);
-    stage.render();
+    if (viewable) {
+      game.update(dt);
+      stage.render();
+    }
 
     if (raw < 0.25) {
       slowTime += raw;
@@ -89,7 +118,9 @@ async function boot(): Promise<void> {
   };
   requestAnimationFrame(loop);
 
-  document.getElementById('boot')?.classList.add('is-done');
+  const bootEl = document.getElementById('boot');
+  bootEl?.addEventListener('transitionend', () => bootEl.remove(), { once: true });
+  bootEl?.classList.add('is-done');
   (window as unknown as { __game: Game }).__game = game;
 }
 

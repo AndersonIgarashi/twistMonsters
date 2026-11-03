@@ -62,6 +62,7 @@ export class Game {
   private refillPending = false;
   private shake = 0;
   private time = 0;
+  private replayGuard = 0;
   private readonly tmp = { x: 0, y: 0 };
 
   constructor(
@@ -92,6 +93,8 @@ export class Game {
       onReplay: () => {
         this.audio.play('button');
         this.reset();
+        // The second tap of a double-tap on Replay shouldn't fire an arrow into the new fight.
+        this.replayGuard = 0.35;
       },
       onUpgrade: () => {
         this.audio.play('upgrade');
@@ -106,7 +109,10 @@ export class Game {
     });
 
     const down = (e: PointerEvent) => this.onDown(e);
-    const up = () => this.onUp();
+    const up = () => {
+      this.audio.unlock();
+      this.onUp();
+    };
     window.addEventListener('pointerdown', down);
     window.addEventListener('pointerup', up);
     window.addEventListener('pointercancel', up);
@@ -161,6 +167,7 @@ export class Game {
     this.audio.unlock();
     if (this.state === 'end' || this.state === 'dying') return;
     if (e.target instanceof HTMLElement && e.target.closest('button')) return;
+    if (this.replayGuard > 0) return;
     if (this.state === 'intro') this.state = 'play';
     this.idle = 0;
     this.hand.hide();
@@ -298,6 +305,7 @@ export class Game {
 
   update(dt: number): void {
     this.time += dt;
+    this.replayGuard = Math.max(0, this.replayGuard - dt);
     this.tween.update(dt);
     if (this.state === 'play') {
       this.playTime += dt;
@@ -335,7 +343,9 @@ export class Game {
     const { h, gap } = CONFIG.arrow;
     const tails = y - (radius - embed + h);
     const contact = y - (radius - embed);
-    for (const f of this.bow.flying) {
+    const flying = this.bow.flying;
+    for (let i = 0; i < flying.length; i++) {
+      const f = flying[i];
       if (!f.active || !this.monster.alive) continue;
       const tip = f.y + h / 2;
       if (!f.passedTails && tip >= tails) {

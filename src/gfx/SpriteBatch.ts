@@ -3,6 +3,7 @@ import {
   DynamicDrawUsage,
   InstancedBufferAttribute,
   InstancedMesh,
+  NoBlending,
   NormalBlending,
   PlaneGeometry,
   ShaderMaterial,
@@ -44,6 +45,8 @@ export interface BatchOptions {
   cols?: number;
   rows?: number;
   additive?: boolean;
+  /** Fully opaque sprite (the background): no blending at all. */
+  opaque?: boolean;
 }
 
 /**
@@ -69,10 +72,10 @@ export class SpriteBatch {
       uniforms: { uMap: { value: opts.texture }, uGrid: { value: [cols, rows] } },
       vertexShader,
       fragmentShader,
-      transparent: true,
+      transparent: !opts.opaque,
       depthTest: false,
       depthWrite: false,
-      blending: opts.additive ? AdditiveBlending : NormalBlending,
+      blending: opts.opaque ? NoBlending : opts.additive ? AdditiveBlending : NormalBlending,
     });
     this.mesh = new InstancedMesh(plane, material, opts.capacity);
     this.mesh.frustumCulled = false;
@@ -131,16 +134,12 @@ export class SpriteBatch {
   commit(): void {
     const n = this.count;
     this.mesh.count = n;
+    // Empty batches skip the renderer entirely.
+    this.mesh.visible = n > 0;
     if (n === 0) return;
-    const im = this.mesh.instanceMatrix;
-    im.clearUpdateRanges();
-    im.addUpdateRange(0, n * 16);
-    im.needsUpdate = true;
-    this.colorAttr.clearUpdateRanges();
-    this.colorAttr.addUpdateRange(0, n * 4);
+    // Whole-buffer uploads (at most ~10 KB): update ranges would allocate range objects and a sort closure every frame.
+    this.mesh.instanceMatrix.needsUpdate = true;
     this.colorAttr.needsUpdate = true;
-    this.frameAttr.clearUpdateRanges();
-    this.frameAttr.addUpdateRange(0, n);
     this.frameAttr.needsUpdate = true;
   }
 }

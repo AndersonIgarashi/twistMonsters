@@ -44,9 +44,10 @@ export class Audio {
     );
   }
 
-  /** Call from inside the first user gesture. */
+  /** Call from inside user gestures. Safe to repeat: iOS may only accept the resume on touchend, so it retries until the context runs. */
   unlock(): void {
-    if (this.unlocked || !this.ctx) return;
+    if (!this.ctx) return;
+    if (this.unlocked && this.ctx.state === 'running') return;
     this.unlocked = true;
     this.sync();
   }
