@@ -71,7 +71,10 @@ The Unity 2019.4 project (`level.unity`, about 4,700 lines of `gameModeControlle
 - **Damage numbers from an atlas.** Digits are rendered once into a glyph atlas with the game font. No text is rasterised during play.
 - **HTML only where it's cheap.** The HUD and end card are a handful of DOM elements sized in world units (`1em` = one game unit), so they scale with the game at any aspect ratio. Everything that animates in numbers is in WebGL.
 - **Adaptive resolution.** The pixel ratio is capped at 2 and steps down when a device averages under about 42 fps.
-- **Audio.** Web Audio buffers decoded up front. Nothing plays before the first touch, and audio suspends when the tab is hidden.
+- **No first-use stalls.** Every texture is uploaded and the shader compiled under the boot screen, so the first hit or the first laser doesn't hitch.
+- **Audio.** Web Audio buffers decoded up front. Nothing plays before the first touch, and audio and rendering stop while the tab is hidden or the MRAID container reports the ad as not viewable.
+
+**Measured** on the production build in headless Chrome with the CPU throttled 6× (CDP), at 390×844 and DPR 3: 50 fps (the headless frame cap), worst gameplay frame 20–40 ms and none over 50 ms, including a stress run with a tap every 40 ms during the laser. A heap sampling profile shows about 2.7 KB per frame after warm-up, all of it V8 number boxing in functions that run once per frame, with no objects, arrays or closures.
 
 ## Quality Assurance
 
