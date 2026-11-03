@@ -5,16 +5,20 @@ import { SpriteBatch } from '../gfx/SpriteBatch';
 
 const DEG = Math.PI / 180;
 
-/** MonstroLVL1-3-5 from level.unity: [x, y, rotation deg, scale] of each spriteTentaculo (254 x 215 px). */
+/**
+ * MonstroLVL1-3-5 from level.unity: [x, y, rotation deg, scale] of each spriteTentaculo (254 x 215 px).
+ * Every second one has flipX + flipY on its SpriteRenderer, which is the same as turning it 180°,
+ * so each pair shares a rotation but both thin tips point away from the body.
+ */
 const TENTACLES: readonly (readonly [number, number, number, number])[] = [
   [-1.34, -0.63, 0, 0.6],
-  [1.22, 0.71, 0, 0.6],
+  [1.22, 0.71, 0 + 180, 0.6],
   [0.68, -1.29, 90, 0.6],
-  [-0.7, 1.25, 90, 0.6],
+  [-0.7, 1.25, 90 + 180, 0.6],
   [-0.6, -1.33, 41.6, 0.6],
-  [0.4, 1.34, 41.6, 0.6],
+  [0.4, 1.34, 41.6 + 180, 0.6],
   [1.34, -0.48, 131.6, 0.6],
-  [-1.34, 0.5, 131.6, 0.6],
+  [-1.34, 0.5, 131.6 + 180, 0.6],
 ];
 const TENTACLE_W = 2.54;
 const TENTACLE_H = 2.15;
