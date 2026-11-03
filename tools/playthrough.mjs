@@ -15,7 +15,7 @@ const CHROME = process.env.CHROME ?? 'C:/Program Files/Google/Chrome/Application
 const browser = await puppeteer.launch({
   executablePath: CHROME,
   headless: true,
-  args: ['--autoplay-policy=no-user-gesture-required', '--enable-gpu-rasterization', '--ignore-gpu-blocklist'],
+  args: ['--autoplay-policy=no-user-gesture-required', '--enable-gpu', '--use-angle=d3d11', '--ignore-gpu-blocklist'],
 });
 const page = await browser.newPage();
 await page.setViewport({ width, height, deviceScaleFactor: dpr, isMobile: width < height, hasTouch: true });
@@ -52,7 +52,9 @@ await page.goto(url, { waitUntil: 'load' });
 await page.waitForFunction(() => document.getElementById('boot')?.classList.contains('is-done'), { timeout: 20000 });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const shot = (name) => page.screenshot({ path: `${out}/${name}.png` });
+// SHOTS=0 skips screenshots, which stall the page and would pollute the frame-time numbers.
+const SHOTS = process.env.SHOTS !== '0';
+const shot = (name) => (SHOTS ? page.screenshot({ path: `${out}/${name}.png` }) : Promise.resolve());
 const state = () =>
   page.evaluate(() => {
     const g = window.__game;
@@ -66,6 +68,11 @@ const tap = async (x = width / 2, y = height * 0.82, hold = 70) => {
 };
 
 await sleep(1300);
+// No sound may play before the first touch: the audio context must still be suspended.
+const audioBeforeTap = await page.evaluate(() => window.__game.audio.ctx?.state ?? 'none');
+if (audioBeforeTap === 'running') errors.push('audio context running before the first tap');
+const handBeforeTap = await page.evaluate(() => document.querySelector('.hand')?.classList.contains('is-visible'));
+if (!handBeforeTap) errors.push('tutorial hand not visible before the first tap');
 await shot('01-intro-hand');
 
 // Shoot until the monster charges its attack, then keep shooting through the laser.
@@ -89,7 +96,7 @@ for (let i = 0; i < 80; i++) {
     await shot('04-laser');
   }
   await tap();
-  await sleep(i < 2 ? 380 : 280);
+  await sleep(i < 2 ? 380 : Number(process.env.TAP_MS ?? 280));
 }
 await sleep(450);
 await shot('05-dying');
@@ -116,7 +123,14 @@ const frames = await page.evaluate(() => window.__frames.slice(30));
 frames.sort((a, b) => a - b);
 const avg = frames.reduce((a, b) => a + b, 0) / Math.max(1, frames.length);
 const p = (q) => frames[Math.min(frames.length - 1, Math.floor(frames.length * q))] ?? 0;
+const gpu = await page.evaluate(() => {
+  const gl = document.createElement('canvas').getContext('webgl2');
+  const ext = gl?.getExtension('WEBGL_debug_renderer_info');
+  return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : 'unknown';
+});
 console.log(JSON.stringify({
+  gpu,
+  audioBeforeTap,
   viewport: `${width}x${height}@${dpr}`,
   cpuThrottle: cpu,
   shots: log.length,

@@ -669,10 +669,10 @@ body {
 .card__check {
   position: absolute;
   left: 50%;
-  top: 50%;
-  width: 1em;
-  height: 1em;
-  margin: -0.5em 0 0 -0.5em;
+  top: 46%;
+  width: 0.78em;
+  height: 0.78em;
+  margin: -0.39em 0 0 -0.39em;
   border-radius: 50%;
   background: radial-gradient(circle at 40% 35%, #a6ff7a, #1fbf4a);
   box-shadow: 0 0 0 0.05em #fff, 0 0.06em 0.14em rgba(0, 0, 0, 0.5);

@@ -292,6 +292,7 @@ export class Game {
 
   private openStore(): void {
     this.audio.play('button');
+    this.hand.hide();
     if (!this.bridge.openStore(CONFIG.storeUrl)) this.end.showNote('In the live ad this opens the store');
   }
 
