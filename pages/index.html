@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Twist Monsters · Playable Ad</title>
+    <meta name="description" content="Playable ad demo: shoot arrows into a spinning shadow monster, survive its energy laser and spend the souls it drops." />
+    <meta property="og:title" content="Twist Monsters · Playable Ad" />
+    <meta property="og:description" content="Shoot a spinning shadow monster and survive its laser. A TypeScript + Three.js playable ad ported from a Unity game." />
+    <meta property="og:image" content="https://andersonigarashi.github.io/twistMonsters/cover.webp" />
+    <meta name="theme-color" content="#0b1238" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='18' fill='%23000'/%3E%3Cg stroke='%23000' stroke-width='7' stroke-linecap='round' fill='none'%3E%3Cpath d='M32 14C28 8 34 4 36 2M50 32c6-4 10 2 12 4M32 50c4 6-2 10-4 12M14 32C8 28 4 34 2 36'/%3E%3C/g%3E%3Ccircle cx='32' cy='32' r='9' fill='%23fff'/%3E%3Cellipse cx='32' cy='32' rx='2.4' ry='7' fill='%23000'/%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --ink: #12062a;
+        --night: #070b24;
+        --violet: #7b3cff;
+        --pink: #ff4fd8;
+        --sky: #6da6ff;
+        --soul: #7ff3ff;
+        --cta-top: #8dff5e;
+        --cta-bottom: #1ec95a;
+        --cta-edge: #0e7a35;
+        --lavender: #dcd6ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        font-family: 'Nunito', system-ui, sans-serif;
+        color: #fff;
+        background: radial-gradient(900px 600px at 70% 45%, rgba(109, 166, 255, 0.45), transparent 70%),
+          radial-gradient(700px 500px at 20% 70%, rgba(123, 60, 255, 0.4), transparent 70%),
+          linear-gradient(180deg, #0b1238 0%, #1a2a7a 50%, #0b1238 100%);
+        background-attachment: fixed;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* Shadow tentacles curling in from the edges, like the game's darkness frame */
+      .shadow {
+        position: fixed;
+        left: 0;
+        right: 0;
+        height: 18vh;
+        z-index: -1;
+        pointer-events: none;
+      }
+
+      .shadow--top {
+        top: 0;
+      }
+
+      .shadow--bottom {
+        bottom: 0;
+        transform: scaleY(-1);
+      }
+
+      .stars span {
+        position: fixed;
+        z-index: -1;
+        width: var(--s);
+        height: var(--s);
+        background: #fff;
+        opacity: 0.8;
+        clip-path: polygon(50% 0, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0 50%, 42% 42%);
+        filter: drop-shadow(0 0 8px var(--soul));
+        animation: twinkle var(--d, 3s) ease-in-out infinite alternate;
+      }
+
+      main {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(32px, 6vw, 96px);
+        padding: 32px 24px;
+      }
+
+      .info {
+        position: relative;
+        max-width: 440px;
+        text-align: center;
+      }
+
+      .info::before {
+        content: '';
+        position: absolute;
+        inset: -60px -90px;
+        z-index: -1;
+        background: radial-gradient(closest-side, rgba(7, 11, 36, 0.75), rgba(7, 11, 36, 0.4) 60%, transparent);
+      }
+
+      .logo {
+        margin: 0;
+        animation: bob 3.2s ease-in-out infinite;
+      }
+
+      .logo img {
+        display: block;
+        width: min(100%, 400px);
+        height: auto;
+        margin: 0 auto;
+        filter: drop-shadow(0 10px 18px rgba(5, 3, 20, 0.5));
+      }
+
+      .logo span {
+        display: block;
+        margin-top: 6px;
+        font-family: 'Lilita One', system-ui, sans-serif;
+        font-weight: 400;
+        font-size: 18px;
+        letter-spacing: 3px;
+        color: var(--soul);
+      }
+
+      .info p {
+        font-size: 18px;
+        line-height: 1.5;
+        font-weight: 600;
+        color: var(--lavender);
+        margin: 18px 0 8px;
+      }
+
+      .tech {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+        margin: 16px 0 26px;
+        padding: 0;
+        list-style: none;
+      }
+
+      .tech li {
+        font-size: 13px;
+        font-weight: 800;
+        color: #fff;
+        background: rgba(7, 11, 36, 0.5);
+        border: 1px solid rgba(127, 243, 255, 0.45);
+        border-radius: 999px;
+        padding: 5px 12px;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      .btn {
+        font-family: 'Lilita One', system-ui, sans-serif;
+        font-size: 20px;
+        letter-spacing: 0.5px;
+        color: #fff;
+        text-decoration: none;
+        border: 0;
+        cursor: pointer;
+        padding: 12px 22px 14px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, var(--cta-top), var(--cta-bottom));
+        box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.45), 0 6px 0 var(--cta-edge), 0 10px 18px rgba(0, 0, 0, 0.3);
+        text-shadow: 0 2px 0 var(--cta-edge);
+        transition: transform 0.12s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px) scale(1.03);
+      }
+
+      .btn:active {
+        transform: translateY(3px) scale(0.97);
+      }
+
+      .btn.secondary {
+        background: linear-gradient(180deg, #a06bff, #6a35e0);
+        box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.3), 0 6px 0 #3a1a96, 0 10px 18px rgba(0, 0, 0, 0.3);
+        text-shadow: 0 2px 0 #3a1a96;
+      }
+
+      .hint {
+        margin-top: 22px;
+        font-size: 14px;
+        opacity: 0.75;
+      }
+
+      .info .credit {
+        margin-top: 10px;
+        font-size: 14px;
+      }
+
+      .credit a {
+        color: #fff;
+        font-weight: 800;
+        text-decoration: none;
+        border-bottom: 2px solid rgba(127, 243, 255, 0.7);
+      }
+
+      .credit a:hover {
+        border-bottom-color: #fff;
+      }
+
+      .phone {
+        position: relative;
+        flex: none;
+        height: min(88vh, 880px);
+        aspect-ratio: 9 / 19.5;
+        padding: 12px;
+        border-radius: 48px;
+        background: #05040d;
+        box-shadow: 0 0 0 2px #3a4fb8, 0 0 50px rgba(109, 166, 255, 0.35), 0 0 90px rgba(123, 60, 255, 0.3),
+          0 30px 60px rgba(5, 3, 20, 0.6);
+      }
+
+      .phone iframe {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        border-radius: 36px;
+        background: #0b1238;
+      }
+
+      @keyframes bob {
+        0%,
+        100% {
+          transform: translateY(0) rotate(-1deg);
+        }
+        50% {
+          transform: translateY(-8px) rotate(1deg);
+        }
+      }
+
+      @keyframes twinkle {
+        from {
+          transform: scale(0.6) rotate(0deg);
+          opacity: 0.35;
+        }
+        to {
+          transform: scale(1.1) rotate(25deg);
+          opacity: 0.95;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .logo,
+        .stars span {
+          animation: none;
+        }
+      }
+
+      @media (max-width: 900px) and (min-width: 641px) {
+        main {
+          flex-direction: column;
+        }
+      }
+
+      /* On phones the playable takes the whole screen */
+      @media (max-width: 640px) {
+        .shadow,
+        .stars,
+        .info {
+          display: none;
+        }
+
+        main {
+          padding: 0;
+        }
+
+        .phone {
+          position: fixed;
+          inset: 0;
+          height: 100dvh;
+          width: 100vw;
+          aspect-ratio: auto;
+          padding: 0;
+          border-radius: 0;
+          box-shadow: none;
+        }
+
+        .phone iframe {
+          border-radius: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg class="shadow shadow--top" viewBox="0 0 1200 160" preserveAspectRatio="none" aria-hidden="true">
+      <path
+        fill="#05040d"
+        d="M0 0h1200v64c-30 18-62 6-80 30-14 20-40 26-58 8-22-22-52-18-70 6-20 26-58 22-72-6-12-24-46-34-70-14-26 22-56 28-80 2-18-20-48-22-66 2-22 30-64 30-82 2-16-24-52-26-72-4-24 26-60 22-76-6-14-26-46-30-68-8-24 24-58 28-80 0-18-22-48-20-66 4-20 28-56 26-72-2-14-24-46-28-66-6C64 110 30 96 0 78z"
+      />
+    </svg>
+    <svg class="shadow shadow--bottom" viewBox="0 0 1200 160" preserveAspectRatio="none" aria-hidden="true">
+      <path
+        fill="#05040d"
+        d="M0 0h1200v40c-40 10-70 30-96 14-22-14-50-6-62 14-14 22-48 24-64 4-18-22-52-20-68 4-16 24-52 24-68 0-16-22-48-24-66-2-18 22-54 22-70-2-14-20-44-24-62-6-20 20-54 18-68-4-14-20-46-22-64-2-18 22-52 22-68-2-14-20-44-22-62-4-20 20-54 18-68-4C150 50 110 70 80 56 50 42 26 52 0 64z"
+      />
+    </svg>
+    <div class="stars" aria-hidden="true">
+      <span style="--s: 22px; top: 22%; left: 8%; --d: 2.6s"></span>
+      <span style="--s: 12px; top: 38%; left: 40%; --d: 3.4s"></span>
+      <span style="--s: 16px; top: 16%; left: 86%; --d: 2.2s"></span>
+      <span style="--s: 10px; top: 62%; left: 92%; --d: 3s"></span>
+      <span style="--s: 18px; top: 70%; left: 5%; --d: 3.8s"></span>
+      <span style="--s: 9px; top: 80%; left: 46%; --d: 2.4s"></span>
+    </div>
+    <main>
+      <section class="info">
+        <h1 class="logo">
+          <img src="logo.webp" alt="Twist Monsters" width="625" height="143" />
+          <span>PLAYABLE AD</span>
+        </h1>
+        <p>
+          Tap to shoot arrows into a spinning shadow monster. Don't hit your own arrows, survive its energy laser,
+          then spend the souls it drops on your first upgrade.
+        </p>
+        <ul class="tech">
+          <li>TypeScript</li>
+          <li>Three.js</li>
+          <li>WebGL instancing</li>
+          <li>Vite</li>
+          <li>Ported from Unity</li>
+          <li>1.3 MB single file</li>
+        </ul>
+        <div class="actions">
+          <a class="btn" href="play.html">Play full screen</a>
+          <button class="btn secondary" id="restart" type="button">Restart</button>
+          <a class="btn secondary" href="https://github.com/AndersonIgarashi/twistMonsters">Source</a>
+        </div>
+        <p class="hint">Turn the sound on. Works with mouse or touch.</p>
+        <p class="credit">Created by: <a href="https://github.com/AndersonIgarashi">Anderson Igarashi</a></p>
+      </section>
+      <div class="phone">
+        <iframe id="game" src="play.html" title="Twist Monsters playable" allow="autoplay; fullscreen"></iframe>
+      </div>
+    </main>
+    <script>
+      document.getElementById('restart').addEventListener('click', function () {
+        var frame = document.getElementById('game');
+        frame.src = 'play.html?t=' + Date.now();
+      });
+    </script>
+  </body>
+</html>

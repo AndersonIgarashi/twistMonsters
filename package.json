@@ -1,0 +1,25 @@
+{
+  "name": "twist-monsters-playable",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Twist Monsters: a mobile-first HTML5 playable ad built with TypeScript, Three.js and Vite.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "assets": "node tools/buildAssets.mjs"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@types/three": "^0.186.0",
+    "puppeteer-core": "^25.16.0",
+    "sharp": "^0.35.5",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.1"
+  }
+}
