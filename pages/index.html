@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Twist Monsters · Playable Ad</title>
+    <title>Twist Monsters (WIP) · Playable Ad</title>
     <meta name="description" content="Playable ad demo: shoot arrows into a spinning shadow monster, survive its energy laser and spend the souls it drops." />
-    <meta property="og:title" content="Twist Monsters · Playable Ad" />
+    <meta property="og:title" content="Twist Monsters (WIP) · Playable Ad" />
     <meta property="og:description" content="Shoot a spinning shadow monster and survive its laser. A TypeScript + Three.js playable ad ported from a Unity game." />
     <meta property="og:image" content="https://andersonigarashi.github.io/twistMonsters/cover.webp" />
     <meta name="theme-color" content="#0b1238" />
@@ -117,6 +117,26 @@
         height: auto;
         margin: 0 auto;
         filter: drop-shadow(0 10px 18px rgba(5, 3, 20, 0.5));
+      }
+
+      .logo .logo__mark {
+        position: relative;
+        display: inline-block;
+        max-width: 100%;
+        margin-top: 0;
+      }
+
+      .logo .wip {
+        position: absolute;
+        right: -6px;
+        bottom: -10px;
+        margin: 0;
+        font-family: 'Lilita One', system-ui, sans-serif;
+        font-size: 22px;
+        letter-spacing: 1px;
+        color: #ffe066;
+        transform: rotate(-6deg);
+        text-shadow: 0 2px 0 var(--ink), 0 0 12px rgba(255, 224, 102, 0.45);
       }
 
       .logo span {
@@ -324,7 +344,10 @@
     <main>
       <section class="info">
         <h1 class="logo">
-          <img src="logo.webp" alt="Twist Monsters" width="625" height="143" />
+          <span class="logo__mark">
+            <img src="logo.webp" alt="Twist Monsters (WIP)" width="625" height="143" />
+            <span class="wip">(WIP)</span>
+          </span>
           <span>PLAYABLE AD</span>
         </h1>
         <p>
